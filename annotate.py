@@ -87,5 +87,5 @@ def draw_annotated(img, mask, cells, col_bounds, row_bounds, prices, config):
 def _format_sats(sats):
     """Format sats with comma separator."""
     if sats >= 1000:
-        return f"{sats:,} sat"
-    return f"{sats} sat"
+        return f"{sats:,} sats"
+    return f"{sats} sats"
