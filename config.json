@@ -1,0 +1,12 @@
+{
+  "base_price_sats": 50000,
+  "score_cap": 2.0,
+  "trim_pct": 10,
+  "seedling_tracker_dir": "../seedling-tracker",
+  "metrics": {
+    "green_coverage": {
+      "enabled": true,
+      "weight": 1.0
+    }
+  }
+}
