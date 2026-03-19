@@ -30,6 +30,7 @@ from annotate import draw_annotated
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SCRIPT_DIR, "config.json")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
+PRICE_CSV = os.path.join(OUTPUT_DIR, "price_log.csv")
 STATE_FILE = os.path.join(OUTPUT_DIR, ".state.json")
 
 
@@ -201,11 +202,25 @@ def process_snapshot(ts_str, snapshot, config, images_dir, grid_params):
     out_path = os.path.join(OUTPUT_DIR, f"{ts_str}_priced.jpg")
     cv2.imwrite(out_path, annotated, [cv2.IMWRITE_JPEG_QUALITY, 90])
 
+    # Log prices to CSV
+    log_prices_csv(ts_str, prices)
+
     total = sum(prices.values())
     active = sum(1 for p in prices.values() if p > 0)
     print(f"  {ts_str} | {active}/{grid_rows * grid_cols} active | crop value: {total:,} sats")
 
     return prices
+
+
+def log_prices_csv(timestamp, prices):
+    """Append per-plant prices to CSV."""
+    file_exists = os.path.exists(PRICE_CSV)
+    with open(PRICE_CSV, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["timestamp", "cell_id", "price_sats"])
+        for cid in sorted(prices.keys()):
+            writer.writerow([timestamp, cid, prices[cid]])
 
 
 def main():
@@ -235,6 +250,8 @@ def main():
     state = load_state()
     if args.reprocess:
         state = {"processed": []}
+        if os.path.exists(PRICE_CSV):
+            os.remove(PRICE_CSV)
 
     if args.image:
         ts = args.image
