@@ -142,9 +142,15 @@ def get_cells(img_h, img_w, grid_rows, grid_cols, col_bounds, row_bounds, margin
 
 
 def segment_green(img):
-    """HSV green segmentation (same params as seedling tracker)."""
+    """HSV green segmentation + specular highlight recovery."""
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, np.array([25, 30, 100]), np.array([80, 255, 255]))
+    # Recover specular highlights adjacent to green pixels
+    highlight_mask = cv2.inRange(hsv, np.array([0, 0, 200]), np.array([180, 40, 255]))
+    dilate_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    green_zone = cv2.dilate(mask, dilate_kernel, iterations=2)
+    recovered = cv2.bitwise_and(highlight_mask, green_zone)
+    mask = cv2.bitwise_or(mask, recovered)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
